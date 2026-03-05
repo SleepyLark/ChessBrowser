@@ -59,35 +59,80 @@ namespace ChessBrowser.Components.Pages
                     string insertPlayerCommand = "INSERT INTO Players (Name, Elo) VALUES (@name, @elo) " +
                         "ON DUPLICATE KEY UPDATE Elo = IF(@elo > Elo, @elo, Elo);";
 
+                    string insertEventCommand = "INSERT IGNORE INTO Events (Name, Site, Date) VALUES (@eventName, @site, @date);";
+
+                    string insertGameCommand = "INSERT INTO Games (Round, Result, Moves,  WhitePlayer, BlackPlayer) " +
+                        "VALUES (@round, @result, @moves " +
+                        "(SELECT pID FROM Players WHERE Name = @whitePlayer)," +
+                        "(SELECT pID FROM Players WHERE Name = @blackPlayer)," +
+                        "(SELECT eID FROM Events WHERE Name = @eventName, AND Site = @site AND Date = @eventDate)" +
+                        ");";
 
 
-                    using (MySqlCommand cmd = new MySqlCommand("", conn))
+
+                    using (MySqlCommand cmdPlayer = new MySqlCommand(insertPlayerCommand, conn))
+                    using (MySqlCommand cmdEvent = new MySqlCommand(insertEventCommand, conn))
+                    using (MySqlCommand cmdGame = new MySqlCommand(insertGameCommand, conn))
                     {
+                        cmdPlayer.Parameters.AddWithValue("@name", "?");
+                        cmdPlayer.Parameters.AddWithValue("@elo", "?");
+
+                        cmdEvent.Parameters.AddWithValue("@eventName", "?");
+                        cmdEvent.Parameters.AddWithValue("@site", "?");
+                        cmdEvent.Parameters.AddWithValue("@date", "0000-00-00");
+
+                        cmdGame.Parameters.AddWithValue("@round", "?");
+                        cmdGame.Parameters.AddWithValue("@result", "?");
+                        cmdGame.Parameters.AddWithValue("@moves", "?");
+                        cmdGame.Parameters.AddWithValue("@whitePlayer", "?");
+                        cmdGame.Parameters.AddWithValue("@blackPlayer", "?");
+
+                        cmdPlayer.Prepare();
+                        cmdEvent.Prepare();
+                        cmdGame.Prepare();
+
                         foreach (ChessGame game in chessGames)
                         {
                             System.Diagnostics.Debug.WriteLine($"Inserting game between {game.WhitePlayer} and {game.BlackPlayer} on {game.Date}");
-                            cmd.CommandText = insertPlayerCommand;
-                            cmd.Parameters.AddWithValue("@name", game.WhitePlayer);
-                            cmd.Parameters.AddWithValue("@elo", game.WhiteElo);
-                            cmd.Prepare();
-                            cmd.ExecuteNonQuery();
 
-                            cmd.Parameters["@name"].Value = game.BlackPlayer;
-                            cmd.Parameters["@elo"].Value = game.BlackElo;
-                            cmd.ExecuteNonQuery();
+                            // Player insert (with Elo update if player already exists)
+                            cmdPlayer.Parameters["@name"].Value = game.WhitePlayer;
+                            cmdPlayer.Parameters["@elo"].Value = game.WhiteElo;
+                            cmdPlayer.ExecuteNonQuery();
 
+                            cmdPlayer.Parameters["@name"].Value = game.BlackPlayer;
+                            cmdPlayer.Parameters["@elo"].Value = game.BlackElo;
+                            cmdPlayer.ExecuteNonQuery();
+
+                            // Event insert
+                            cmdEvent.Parameters["@eventName"].Value = game.EventName;
+                            cmdEvent.Parameters["@site"].Value = game.Site;
+                            cmdEvent.Parameters["@date"].Value = game.Date;
+                            cmdEvent.ExecuteNonQuery();
+
+                            // Game insert
+                            cmdGame.Parameters["@round"].Value = game.Round;
+                            cmdGame.Parameters["@result"].Value = game.Result;
+                            cmdGame.Parameters["@moves"].Value = game.Moves;
+                            cmdGame.Parameters["@whitePlayer"].Value = game.WhitePlayer;
+                            cmdGame.Parameters["@blackPlayer"].Value = game.BlackPlayer;
+                            cmdGame.Parameters["@eventName"].Value = game.EventName;
+                            cmdGame.Parameters["@site"].Value = game.Site;
+                            cmdGame.Parameters["@eventDate"].Value = game.Date;
+                            cmdGame.ExecuteNonQuery();
+
+                            // TODO:
+                            //   Update the Progress member variable every time progress has been made
+                            //   (e.g. one iteration of your upload loop)
+                            //   This will update the progress bar in the GUI
+                            //   Its value should be an integer representing a percentage of completion
+                            Progress++;
+
+                            // This tells the GUI to redraw after you update Progress (this should go inside your loop)
+                            await InvokeAsync(StateHasChanged);
                         }
 
 
-                        // TODO:
-                        //   Update the Progress member variable every time progress has been made
-                        //   (e.g. one iteration of your upload loop)
-                        //   This will update the progress bar in the GUI
-                        //   Its value should be an integer representing a percentage of completion
-                        Progress++;
-
-                        // This tells the GUI to redraw after you update Progress (this should go inside your loop)
-                        await InvokeAsync(StateHasChanged);
                     }
 
 
