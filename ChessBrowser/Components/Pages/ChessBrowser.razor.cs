@@ -51,6 +51,8 @@ namespace ChessBrowser.Components.Pages
             {
                 try
                 {
+                    Progress = 0;
+
                     // Open a connection
                     conn.Open();
 
@@ -59,13 +61,13 @@ namespace ChessBrowser.Components.Pages
                     string insertPlayerCommand = "INSERT INTO Players (Name, Elo) VALUES (@name, @elo) " +
                         "ON DUPLICATE KEY UPDATE Elo = IF(@elo > Elo, @elo, Elo);";
 
-                    string insertEventCommand = "INSERT IGNORE INTO Events (Name, Site, Date) VALUES (@eventName, @site, @date);";
+                    string insertEventCommand = "INSERT IGNORE INTO Events (Name, Site, Date) VALUES (@eventName, @site, @eventDate);";
 
-                    string insertGameCommand = "INSERT INTO Games (Round, Result, Moves,  WhitePlayer, BlackPlayer) " +
-                        "VALUES (@round, @result, @moves " +
-                        "(SELECT pID FROM Players WHERE Name = @whitePlayer)," +
-                        "(SELECT pID FROM Players WHERE Name = @blackPlayer)," +
-                        "(SELECT eID FROM Events WHERE Name = @eventName, AND Site = @site AND Date = @eventDate)" +
+                    string insertGameCommand = "INSERT INTO Games (Round, Result, Moves,  WhitePlayer, BlackPlayer, eID) " +
+                        "VALUES (@round, @result, @moves, " +
+                        "(SELECT pID FROM Players WHERE Name = '@whitePlayer')," +
+                        "(SELECT pID FROM Players WHERE Name = '@blackPlayer')," +
+                        "(SELECT eID FROM Events WHERE Name = '@eventName' AND Site = '@site' AND Date = '@eventDate')" +
                         ");";
 
 
@@ -79,13 +81,16 @@ namespace ChessBrowser.Components.Pages
 
                         cmdEvent.Parameters.AddWithValue("@eventName", "?");
                         cmdEvent.Parameters.AddWithValue("@site", "?");
-                        cmdEvent.Parameters.AddWithValue("@date", "0000-00-00");
+                        cmdEvent.Parameters.AddWithValue("@eventDate", "0000-00-00");
 
                         cmdGame.Parameters.AddWithValue("@round", "?");
                         cmdGame.Parameters.AddWithValue("@result", "?");
                         cmdGame.Parameters.AddWithValue("@moves", "?");
                         cmdGame.Parameters.AddWithValue("@whitePlayer", "?");
                         cmdGame.Parameters.AddWithValue("@blackPlayer", "?");
+                        cmdGame.Parameters.AddWithValue("@eventName", "?");
+                        cmdGame.Parameters.AddWithValue("@site", "?");
+                        cmdGame.Parameters.AddWithValue("@eventDate", "0000-00-00");
 
                         cmdPlayer.Prepare();
                         cmdEvent.Prepare();
@@ -107,7 +112,7 @@ namespace ChessBrowser.Components.Pages
                             // Event insert
                             cmdEvent.Parameters["@eventName"].Value = game.EventName;
                             cmdEvent.Parameters["@site"].Value = game.Site;
-                            cmdEvent.Parameters["@date"].Value = game.Date;
+                            cmdEvent.Parameters["@eventDate"].Value = game.EventDate;
                             cmdEvent.ExecuteNonQuery();
 
                             // Game insert
@@ -143,7 +148,7 @@ namespace ChessBrowser.Components.Pages
                     System.Diagnostics.Debug.WriteLine(e.Message);
                 }
 
-                Progress = 0;
+                
             }
 
         }
