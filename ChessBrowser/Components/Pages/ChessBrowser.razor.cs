@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using System.Diagnostics;
 using MySql.Data.MySqlClient;
+using ChessBrowser.Components;
 
 namespace ChessBrowser.Components.Pages
 {
@@ -43,9 +44,10 @@ namespace ChessBrowser.Components.Pages
             // TODO:
             //   Parse the provided PGN data
             //   We recommend creating separate libraries to represent chess data and load the file
-            PGNParser.parseFileLine(PGNFileLines);
+            List<ChessGame> chessGames = PGNParser.parseFileLine(PGNFileLines);
+            System.Diagnostics.Debug.WriteLine($"Found {chessGames.Count} entries");
 
-      using (MySqlConnection conn = new MySqlConnection(connection))
+            using (MySqlConnection conn = new MySqlConnection(connection))
       {
         try
         {

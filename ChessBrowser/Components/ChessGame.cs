@@ -4,20 +4,20 @@
     {
         private string eventName;
         private string site;
-        private DateTime date;
-        private float round;
+        private DateOnly date;
+        private string round;
         private string whitePlayer;
         private string blackPlayer;
         private string result;
         private string whiteElo;
         private string blackElo;
         private string ECO;
-        private DateTime eventDate;
+        private DateOnly eventDate;
         private string moves;
 
-        public ChessGame(string eventName, string site, DateTime date, float round,
+        public ChessGame(string eventName, string site, DateOnly date, string round,
         string whitePlayer, string blackPlayer, string result, string whiteElo,
-        string blackElo, string ECO, DateTime eventDate, string moves)
+        string blackElo, string ECO, DateOnly eventDate, string moves)
         {
             this.eventName = eventName;
             this.site = site;
@@ -53,14 +53,14 @@
         }
 
         // Date
-        public DateTime Date
+        public DateOnly Date
         {
             get { return date; }
             set { date = value; }
         }
 
         // Round
-        public float Round
+        public string Round
         {
             get { return round; }
             set { round = value; }
@@ -109,7 +109,7 @@
         }
 
         // Event Date
-        public DateTime EventDate
+        public DateOnly EventDate
         {
             get { return eventDate; }
             set { eventDate = value; }

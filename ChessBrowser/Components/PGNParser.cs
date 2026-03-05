@@ -31,11 +31,14 @@ namespace ChessBrowser.Components
                     }
                     else if(line.StartsWith("[Date"))
                     {
-                        currentGame.EventDate = DateTime.Parse(param);
+                        if(param.Contains("?"))
+                            param = DateOnly.MinValue.ToString(); // 0001-01-01
+
+                        currentGame.EventDate = DateOnly.Parse(param);
                     }
                     else if (line.StartsWith("[Round"))
                     {
-                        currentGame.Round = float.Parse(param);
+                        currentGame.Round = param;
                     }
                     else if (line.StartsWith("[White "))
                     {
@@ -63,7 +66,7 @@ namespace ChessBrowser.Components
                     }
                     else if (line.StartsWith("[EventDate"))
                     {
-                        currentGame.EventDate = DateTime.Parse(param);
+                        currentGame.EventDate = DateOnly.Parse(param);
                     }
                 }
                 else if (line.StartsWith("1."))
