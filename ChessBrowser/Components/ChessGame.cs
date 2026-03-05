@@ -84,7 +84,15 @@
         public string Result
         {
             get { return result; }
-            set { result = value; }
+            set { if (value == "1-0")
+                    result = "W";
+                else if (value == "0-1")
+                    result = "B";
+                else if (value == "1/2-1/2")
+                    result = "D";
+                else
+                    result = "?";
+            }
         }
 
         // White Elo
